@@ -1,0 +1,17 @@
+name: tpaspawn
+version: '1.0.0'
+main: me.honeyberries.tpaspawn.Tpaspawn
+api-version: '1.13'
+authors: [ HoneyBerries ]
+description: Lets you go to the world spawn by using /spawn
+commands:
+  spawn:
+    description: "Lets you go to spawn instantly with /spawn"
+    usage: "/spawn"
+    aliases: [ tpspawn ]
+    permission: tpaspawn.command.spawn
+    permission-message: "You are prevented from going to the world spawn :("
+permissions:
+  tpaspawn.command.spawn:
+    description: "Allows a player to use /spawn"
+    default: true
