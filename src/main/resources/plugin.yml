@@ -1,6 +1,6 @@
-name: tpaspawn
-version: '1.0.0'
-main: me.honeyberries.tpaspawn.Tpaspawn
+name: tpspawn
+version: '1.0.1'
+main: me.honeyberries.tpspawn.TPSpawn
 api-version: '1.13'
 authors: [ HoneyBerries ]
 description: Lets you go to the world spawn by using /spawn
@@ -8,10 +8,21 @@ commands:
   spawn:
     description: "Lets you go to spawn instantly with /spawn"
     usage: "/spawn"
-    aliases: [ tpspawn ]
-    permission: tpaspawn.command.spawn
+    aliases: []
+    permission: tpspawn.command.spawn
     permission-message: "You are prevented from going to the world spawn :("
+  tpspawn:
+    description: "Lets you modify the plugin settings"
+    usage: "/tpspawn <action> <value>"
+    aliases: []
+
 permissions:
-  tpaspawn.command.spawn:
+  tpspawn.command.spawn:
     description: "Allows a player to use /spawn"
     default: true
+  tpspawn.cooldown.bypass:
+    description: "Allows you to bypass the cooldown"
+    default: op
+  tpspawn.command.edit:
+    description: "Lets you reload config and edit stuff"
+    default: op

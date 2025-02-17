@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.honeyberries</groupId>
-    <artifactId>tpaspawn</artifactId>
-    <version>1.0.0</version>
+    <artifactId>tpspawn</artifactId>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
-    <name>tpaspawn</name>
+    <name>tpspawn</name>
 
     <properties>
         <java.version>21</java.version>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
+            <version>1.19-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
