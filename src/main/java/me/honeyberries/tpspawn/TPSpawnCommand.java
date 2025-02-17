@@ -10,10 +10,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Command executor for the /tpspawn command.
- * Handles various actions like reloading configuration, setting cooldown, and preventing fall damage.
+ * Handles various actions like reloading configuration, and setting cooldown
  */
 public class TPSpawnCommand implements CommandExecutor, TabExecutor {
 
@@ -38,20 +39,32 @@ public class TPSpawnCommand implements CommandExecutor, TabExecutor {
         // Handle different actions based on the provided arguments
         if (args.length == 1) {
             switch (args[0].toLowerCase()) {
+                case "help":
+                    sender.sendMessage(ChatColor.GREEN + "------ TPSpawn Command Help ------");
+                    sender.sendMessage(ChatColor.AQUA + "/tpspawn reload" + ChatColor.GRAY + " - Reloads the plugin configuration.");
+                    sender.sendMessage(ChatColor.AQUA + "/tpspawn cooldown" + ChatColor.GRAY + " - Displays the current cooldown time.");
+                    sender.sendMessage(ChatColor.AQUA + "/tpspawn cooldown <value>" + ChatColor.GRAY + " - Sets a new cooldown time (in seconds).");
+                    sender.sendMessage(ChatColor.AQUA + "/tpspawn sound" + ChatColor.GRAY + " - Shows if teleport sound is enabled.");
+                    sender.sendMessage(ChatColor.AQUA + "/tpspawn sound <true/false>" + ChatColor.GRAY + " - Enables or disables teleport sound.");
+                    sender.sendMessage(ChatColor.GREEN + "----------------------------------");
+                    break;
+
                 case "reload":
                     TPSpawnSettings.getInstance().loadConfig();
-                    sender.sendMessage(ChatColor.GREEN + "Configuration successfully reloaded!");
+                    sender.sendMessage(ChatColor.AQUA + "Configuration successfully reloaded!");
                     break;  // Prevents falling through to the next case
 
                 case "cooldown":
-                    float cooldown = TPSpawnSettings.getInstance().getCooldown();
-                    sender.sendMessage(ChatColor.GOLD + "Cooldown time is set to " + ChatColor.GREEN + cooldown + ChatColor.GOLD + " seconds!");
+                    double cooldown = TPSpawnSettings.getInstance().getCooldown();
+                    sender.sendMessage(ChatColor.GOLD + "Cooldown time is set to " + ChatColor.AQUA + cooldown + ChatColor.GOLD + " seconds!");
                     break;
 
-                case "preventfalldamage":
-                    boolean preventFallDamage = TPSpawnSettings.getInstance().isPreventFallDamage();
-                    sender.sendMessage(ChatColor.GOLD + "Preventing fall damage is currently set to " + ChatColor.GREEN + preventFallDamage);
+
+                case "sound":
+                    boolean playSound = TPSpawnSettings.getInstance().isTeleportSound();
+                    sender.sendMessage(ChatColor.GOLD + "Teleport sound is currently set to " + ChatColor.AQUA + playSound);
                     break;
+
 
                 default:
                     sender.sendMessage(ChatColor.RED + "Invalid action! Usage: /tpspawn <action> <value>");
@@ -64,21 +77,29 @@ public class TPSpawnCommand implements CommandExecutor, TabExecutor {
             switch (args[0].toLowerCase()) {
                 case "cooldown":
                     try {
-                        long cooldown = Long.parseLong(args[1]);
+                        double cooldown = Double.parseDouble(args[1]);
+                        if (cooldown < 0.0) {
+                            sender.sendMessage(ChatColor.RED + "Cooldown must be non-negative");
+                            break;
+                        }
+
                         TPSpawnSettings.getInstance().setCooldown(cooldown);
                         TPSpawn.getInstance().getLogger().info("Cooldown: " + cooldown);
-                        sender.sendMessage(ChatColor.GOLD + "Cooldown is now set to " + ChatColor.GREEN + cooldown + ChatColor.GOLD + " seconds!");
+                        sender.sendMessage(ChatColor.GOLD + "Cooldown is now set to " + ChatColor.AQUA + cooldown + ChatColor.GOLD + " seconds!");
+
                     } catch (NumberFormatException e) {
                         sender.sendMessage(ChatColor.RED + "Invalid number format for cooldown.");
                     }
                     break;
 
-                case "preventfalldamage":
-                    boolean preventFallDamage = Boolean.parseBoolean(args[1]);
-                    TPSpawnSettings.getInstance().setPreventFallDamage(preventFallDamage);
-                    TPSpawn.getInstance().getLogger().info("Preventing fall damage: " + preventFallDamage);
-                    sender.sendMessage(ChatColor.GOLD + "Preventing fall damage is now set to " + ChatColor.GREEN + preventFallDamage);
+
+                case "sound":
+                    boolean playSound = Boolean.parseBoolean(args[1]);
+                    TPSpawnSettings.getInstance().setTeleportSound(playSound);
+                    TPSpawn.getInstance().getLogger().info("Teleport sound is set to " + playSound);
+                    sender.sendMessage(ChatColor.GOLD + "Teleport sound is now set to " + ChatColor.AQUA + playSound);
                     break;
+
 
                 default:
                     sender.sendMessage(ChatColor.RED + "Invalid action! Usage: /tpspawn <action> <value>");
@@ -104,15 +125,18 @@ public class TPSpawnCommand implements CommandExecutor, TabExecutor {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         // Suggest actions for the first argument
         if (args.length == 1) {
-            List<String> validSuggestions = List.of("reload", "cooldown", "preventfalldamage");
-            return validSuggestions.stream()
+            return Stream.of("reload", "cooldown", "sound", "help")
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }
 
-        // Suggest true/false for the second argument when 'preventfalldamage' is used
-        if (args.length == 2 && args[0].equalsIgnoreCase("preventfalldamage")) {
-            return List.of("true", "false");
+        // Suggest true/false for the second argument when 'sound' is already an arg
+        if (args.length == 2) {
+            if (List.of("sound").contains(args[0].toLowerCase())) {
+                return Stream.of("true", "false")
+                        .filter(option -> option.startsWith(args[1].toLowerCase()))
+                        .collect(Collectors.toList());
+            }
         }
 
         return Collections.emptyList(); // No suggestions

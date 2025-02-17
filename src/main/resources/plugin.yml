@@ -1,7 +1,7 @@
 name: tpspawn
-version: '1.0.1'
+version: '1.0.2'
 main: me.honeyberries.tpspawn.TPSpawn
-api-version: '1.13'
+api-version: '1.19'
 authors: [ HoneyBerries ]
 description: Lets you go to the world spawn by using /spawn
 commands:
@@ -9,8 +9,7 @@ commands:
     description: "Lets you go to spawn instantly with /spawn"
     usage: "/spawn"
     aliases: []
-    permission: tpspawn.command.spawn
-    permission-message: "You are prevented from going to the world spawn :("
+
   tpspawn:
     description: "Lets you modify the plugin settings"
     usage: "/tpspawn <action> <value>"

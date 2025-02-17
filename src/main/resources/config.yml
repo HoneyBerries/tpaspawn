@@ -1,9 +1,10 @@
-# Configuration file for the Spawn Plugin
+# Configuration file for the Spawn Plugin.
+#Please don't act dumb and try to set values to cause errors. It's not fun for you nor the developer.
 
-# If set to 'true', players will not take fall damage after using the spawn command.
-# If set to 'false', fall damage will apply as usual.
-prevent-fall-damage-on-command: false
 
 # The cooldown time (in seconds) before a player can use the spawn command again.
 # Set to '0' for no cooldown (players can use the command instantly).
 cooldown: 0
+
+# If set to true, plays an enderman warp sound
+teleport-sound: false
