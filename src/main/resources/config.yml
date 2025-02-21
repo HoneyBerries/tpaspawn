@@ -1,7 +1,5 @@
 # Configuration file for the Spawn Plugin.
 #Please don't act dumb and try to set values to cause errors. It's not fun for you nor the developer.
-
-
 # The cooldown time (in seconds) before a player can use the spawn command again.
 # Set to '0' for no cooldown (players can use the command instantly).
 cooldown: 0

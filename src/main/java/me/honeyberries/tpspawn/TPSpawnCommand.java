@@ -1,6 +1,7 @@
 package me.honeyberries.tpspawn;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,132 +14,145 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Command executor for the /tpspawn command.
- * Handles various actions like reloading configuration, and setting cooldown
+ * Handles the /tpspawn command and its subcommands such as reload, cooldown, and sound settings.
  */
 public class TPSpawnCommand implements CommandExecutor, TabExecutor {
 
     /**
-     * Executes the command based on the provided arguments.
-     *
-     * @param sender The sender of the command (e.g., player or console).
-     * @param command The command that was executed.
-     * @param label The label of the command (e.g., "tpspawn").
+     * Executes the /tpspawn command, handling different actions such as reload, cooldown, and sound configuration.
+     * @param sender The sender of the command.
+     * @param command The command being executed.
+     * @param label The label of the command.
      * @param args The arguments passed with the command.
-     * @return True if the command was handled successfully, false otherwise.
+     * @return true if the command was handled, false otherwise.
      */
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-
-        // Check if the sender has permission to use the command
+        // Permission check
         if (!sender.hasPermission("tpspawn.command.edit")) {
-            sender.sendMessage(ChatColor.RED + "Sorry, you don't have the permissions to run this command!");
+            sender.sendMessage(Component.text("Sorry, you don't have the permissions to run this command!", NamedTextColor.RED));
             return true;
         }
 
-        // Handle different actions based on the provided arguments
+        // Handle arguments
         if (args.length == 1) {
             switch (args[0].toLowerCase()) {
                 case "help":
-                    sender.sendMessage(ChatColor.GREEN + "------ TPSpawn Command Help ------");
-                    sender.sendMessage(ChatColor.AQUA + "/tpspawn reload" + ChatColor.GRAY + " - Reloads the plugin configuration.");
-                    sender.sendMessage(ChatColor.AQUA + "/tpspawn cooldown" + ChatColor.GRAY + " - Displays the current cooldown time.");
-                    sender.sendMessage(ChatColor.AQUA + "/tpspawn cooldown <value>" + ChatColor.GRAY + " - Sets a new cooldown time (in seconds).");
-                    sender.sendMessage(ChatColor.AQUA + "/tpspawn sound" + ChatColor.GRAY + " - Shows if teleport sound is enabled.");
-                    sender.sendMessage(ChatColor.AQUA + "/tpspawn sound <true/false>" + ChatColor.GRAY + " - Enables or disables teleport sound.");
-                    sender.sendMessage(ChatColor.GREEN + "----------------------------------");
+                    showHelp(sender);
                     break;
-
                 case "reload":
                     TPSpawnSettings.getInstance().loadConfig();
-                    sender.sendMessage(ChatColor.AQUA + "Configuration successfully reloaded!");
-                    break;  // Prevents falling through to the next case
-
+                    sender.sendMessage(Component.text("Configuration successfully reloaded!", NamedTextColor.AQUA));
+                    break;
                 case "cooldown":
                     double cooldown = TPSpawnSettings.getInstance().getCooldown();
-                    sender.sendMessage(ChatColor.GOLD + "Cooldown time is set to " + ChatColor.AQUA + cooldown + ChatColor.GOLD + " seconds!");
+                    sender.sendMessage(Component.text("Cooldown time is set to ", NamedTextColor.GOLD)
+                            .append(Component.text(cooldown + " seconds!", NamedTextColor.AQUA)));
                     break;
-
-
                 case "sound":
                     boolean playSound = TPSpawnSettings.getInstance().isTeleportSound();
-                    sender.sendMessage(ChatColor.GOLD + "Teleport sound is currently set to " + ChatColor.AQUA + playSound);
+                    sender.sendMessage(Component.text("Teleport sound is currently set to ", NamedTextColor.GOLD)
+                            .append(Component.text(String.valueOf(playSound), NamedTextColor.AQUA)));
                     break;
-
-
                 default:
-                    sender.sendMessage(ChatColor.RED + "Invalid action! Usage: /tpspawn <action> <value>");
+                    sender.sendMessage(Component.text("Invalid action! Usage: /tpspawn <action> <value>", NamedTextColor.RED));
                     break;
             }
             return true;
         }
 
-        else if (args.length == 2) {
+        if (args.length == 2) {
             switch (args[0].toLowerCase()) {
                 case "cooldown":
-                    try {
-                        double cooldown = Double.parseDouble(args[1]);
-                        if (cooldown < 0.0) {
-                            sender.sendMessage(ChatColor.RED + "Cooldown must be non-negative");
-                            break;
-                        }
-
-                        TPSpawnSettings.getInstance().setCooldown(cooldown);
-                        TPSpawn.getInstance().getLogger().info("Cooldown: " + cooldown);
-                        sender.sendMessage(ChatColor.GOLD + "Cooldown is now set to " + ChatColor.AQUA + cooldown + ChatColor.GOLD + " seconds!");
-
-                    } catch (NumberFormatException e) {
-                        sender.sendMessage(ChatColor.RED + "Invalid number format for cooldown.");
-                    }
+                    setCooldown(sender, args[1]);
                     break;
-
-
                 case "sound":
-                    boolean playSound = Boolean.parseBoolean(args[1]);
-                    TPSpawnSettings.getInstance().setTeleportSound(playSound);
-                    TPSpawn.getInstance().getLogger().info("Teleport sound is set to " + playSound);
-                    sender.sendMessage(ChatColor.GOLD + "Teleport sound is now set to " + ChatColor.AQUA + playSound);
+                    setSound(sender, args[1]);
                     break;
-
-
                 default:
-                    sender.sendMessage(ChatColor.RED + "Invalid action! Usage: /tpspawn <action> <value>");
+                    sender.sendMessage(Component.text("Invalid action! Usage: /tpspawn <action> <value>", NamedTextColor.RED));
                     break;
             }
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Invalid Syntax! Usage: /tpspawn <action> <value>");
+        sender.sendMessage(Component.text("Invalid Syntax! Usage: /tpspawn <action> <value>", NamedTextColor.RED));
         return true;
     }
 
     /**
-     * Provides tab completion suggestions for the /tpspawn command.
-     *
-     * @param sender The sender of the command (e.g., player or console).
+     * Shows the help menu for the TPSpawn command.
+     * @param sender The sender who invoked the command.
+     */
+    private void showHelp(CommandSender sender) {
+        sender.sendMessage(Component.text("------ TPSpawn Command Help ------", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("/tpspawn reload", NamedTextColor.AQUA)
+                .append(Component.text(" - Reloads the plugin configuration.", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("/tpspawn cooldown", NamedTextColor.AQUA)
+                .append(Component.text(" - Displays the current cooldown time.", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("/tpspawn cooldown <value>", NamedTextColor.AQUA)
+                .append(Component.text(" - Sets a new cooldown time (in seconds).", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("/tpspawn sound", NamedTextColor.AQUA)
+                .append(Component.text(" - Shows if teleport sound is enabled.", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("/tpspawn sound <true/false>", NamedTextColor.AQUA)
+                .append(Component.text(" - Enables or disables teleport sound.", NamedTextColor.GRAY)));
+        sender.sendMessage(Component.text("----------------------------------", NamedTextColor.GREEN));
+    }
+
+    /**
+     * Sets the cooldown time for teleportation.
+     * @param sender The sender who invoked the command.
+     * @param cooldownStr The string value representing the cooldown time.
+     */
+    private void setCooldown(CommandSender sender, String cooldownStr) {
+        try {
+            double cooldown = Double.parseDouble(cooldownStr);
+            if (cooldown < 0.0) {
+                sender.sendMessage(Component.text("Cooldown must be non-negative", NamedTextColor.RED));
+                return;
+            }
+            TPSpawnSettings.getInstance().setCooldown(cooldown);
+            TPSpawn.getInstance().getLogger().info("Cooldown: " + cooldown);
+            sender.sendMessage(Component.text("Cooldown is now set to ", NamedTextColor.GOLD)
+                    .append(Component.text(cooldown + " seconds!", NamedTextColor.AQUA)));
+        } catch (NumberFormatException e) {
+            sender.sendMessage(Component.text("Invalid number format for cooldown.", NamedTextColor.RED));
+        }
+    }
+
+    /**
+     * Sets whether the teleport sound is enabled.
+     * @param sender The sender who invoked the command.
+     * @param soundStr The string value representing whether the sound is enabled.
+     */
+    private void setSound(CommandSender sender, String soundStr) {
+        boolean playSound = Boolean.parseBoolean(soundStr);
+        TPSpawnSettings.getInstance().setTeleportSound(playSound);
+        TPSpawn.getInstance().getLogger().info("Teleport sound is set to " + playSound);
+        sender.sendMessage(Component.text("Teleport sound is now set to ", NamedTextColor.GOLD)
+                .append(Component.text(String.valueOf(playSound), NamedTextColor.AQUA)));
+    }
+
+    /**
+     * Tab-completion for the /tpspawn command.
+     * @param sender The sender who invoked the command.
      * @param command The command being executed.
-     * @param label The label of the command (e.g., "tpspawn").
+     * @param label The label of the command.
      * @param args The arguments passed with the command.
-     * @return A list of suggestions based on the current argument position.
+     * @return A list of suggestions for the tab-completion.
      */
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        // Suggest actions for the first argument
         if (args.length == 1) {
             return Stream.of("reload", "cooldown", "sound", "help")
                     .filter(option -> option.startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }
-
-        // Suggest true/false for the second argument when 'sound' is already an arg
-        if (args.length == 2) {
-            if (List.of("sound").contains(args[0].toLowerCase())) {
-                return Stream.of("true", "false")
-                        .filter(option -> option.startsWith(args[1].toLowerCase()))
-                        .collect(Collectors.toList());
-            }
+        if (args.length == 2 && "sound".equalsIgnoreCase(args[0])) {
+            return Stream.of("true", "false")
+                    .filter(option -> option.startsWith(args[1].toLowerCase()))
+                    .collect(Collectors.toList());
         }
-
-        return Collections.emptyList(); // No suggestions
+        return List.of();
     }
 }
